@@ -371,4 +371,5 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
     """)
 
 
-    demo.launch(server_name="0.0.0.0", server_port=8000)
+port = int(os.environ.get("PORT", 8000))
+demo.launch(server_name="0.0.0.0", server_port=port)

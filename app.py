@@ -290,7 +290,8 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
         product_details = {
             "ElectroLux washing Machine": "Product Info:\n- Product Name = Automatic Washing Machine\n- Type = Top Load\n- Capacity = 9Kg\n- Color = Grey and White",
 ##            "Mitsubishi Industrial AC": "Product Info:\n- Product Name = AIR-CONDITIONER\n- Type and Model = Industrial AC SRK25ZMP-S, SRK35ZMP-S, SRK45ZMP-S",
-##            "whirl-pool Microwave": "Product Info:\n- Product Name = MICROWAVE OVEN\n- Type = COUNTERTOP MICROWAVE\n- Warranty = ONE YEAR LIMITED WARRANTY", }
+##            "whirl-pool Microwave": "Product Info:\n- Product Name = MICROWAVE OVEN\n- Type = COUNTERTOP MICROWAVE\n- Warranty = ONE YEAR LIMITED WARRANTY",
+            }
         return product_details.get(product_name, "Product Info: Not available.")
 
     def respond(message, history, selected_product, show_extracted):

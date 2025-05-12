@@ -14,5 +14,5 @@ app = FastAPI()
 app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 80))  # Ensure it's set to 80 for Azure
     uvicorn.run(app, host="0.0.0.0", port=port)

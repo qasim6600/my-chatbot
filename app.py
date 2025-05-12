@@ -1,14 +1,18 @@
-import os
 import gradio as gr
+from fastapi import FastAPI
+import uvicorn
+import os
 
-# Your app logic here — example demo app
+# Your Gradio logic
 def greet(name):
     return f"Hello, {name}!"
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
 
-# Correct port handling for Azure and local
-port = int(os.environ.get("PORT", 7860))
+# Wrap with FastAPI
+app = FastAPI()
+app = gr.mount_gradio_app(app, demo, path="/")
 
-# Must bind to 0.0.0.0 for Azure
-demo.launch(server_name="0.0.0.0", server_port=port)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -5,6 +5,9 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# Copy your cache files
+COPY *.pkl /app/cache/
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     poppler-utils \

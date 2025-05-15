@@ -1,7 +1,3 @@
-from fastapi import FastAPI
-import uvicorn
-import time
-import os
 import pdfplumber
 import re
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -11,6 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import gradio as gr
 from groq import Groq
 import time
+import os
+
 
 
 # --- Cleaning Function ---
@@ -54,6 +52,10 @@ def extract_manual_content(pdf_path):
     figure_text = clean_text(" ".join(figure_texts))
 
     return normal_text, figure_text, tables
+
+##def chunk_text(text, chunk_size=800, chunk_overlap=100):
+##    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+##    return splitter.split_text(text)
 
 
 ##def chunk_text(text, max_chunk_size=800):
@@ -112,8 +114,8 @@ client = Groq(api_key="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"
 # --- Manual Preloading ---
 manuals = {
     "ElectroLux washing Machine": "elctrolux.pdf",
-##    "Mitsubishi Industrial AC": "Mitsubishi Industrial AC.pdf",
-##    "whirl-pool Microwave": "whirl-pool Microwave.pdf",
+    "Mitsubishi Industrial AC": "Mitsubishi Industrial AC.pdf",
+    "whirl-pool Microwave": "whirl-pool Microwave.pdf",
 }
 
 manual_data = {}
@@ -239,7 +241,8 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
         
         margin: 0;
         padding: 0;
-        overflow: hidden;
+        overflow: auto;
+        background-image: url('https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&w=1350&q=80');
         background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
@@ -289,9 +292,8 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
     def update_product_info(product_name):
         product_details = {
             "ElectroLux washing Machine": "Product Info:\n- Product Name = Automatic Washing Machine\n- Type = Top Load\n- Capacity = 9Kg\n- Color = Grey and White",
-##            "Mitsubishi Industrial AC": "Product Info:\n- Product Name = AIR-CONDITIONER\n- Type and Model = Industrial AC SRK25ZMP-S, SRK35ZMP-S, SRK45ZMP-S",
-##            "whirl-pool Microwave": "Product Info:\n- Product Name = MICROWAVE OVEN\n- Type = COUNTERTOP MICROWAVE\n- Warranty = ONE YEAR LIMITED WARRANTY",
-            }
+            "Mitsubishi Industrial AC": "Product Info:\n- Product Name = AIR-CONDITIONER\n- Type and Model = Industrial AC SRK25ZMP-S, SRK35ZMP-S, SRK45ZMP-S",
+            "whirl-pool Microwave": "Product Info:\n- Product Name = MICROWAVE OVEN\n- Type = COUNTERTOP MICROWAVE\n- Warranty = ONE YEAR LIMITED WARRANTY", }
         return product_details.get(product_name, "Product Info: Not available.")
 
     def respond(message, history, selected_product, show_extracted):
@@ -307,6 +309,11 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
             history.append({"role": "assistant", "content": validation})  # show suggestions!
             yield history, "", ""
             return
+##        if validation != "Valid Question":
+##            history.append({"role": "user", "content": message})
+##            history.append({"role": "assistant", "content": "⚠ Please ask a proper question related to the product manual."})
+##            yield history, "", ""
+##            return
 
         data = manual_data[selected_product]
         top_text_chunks = search_chunks(message, data["text_embeddings"], data["text_chunks"], top_k=2)
@@ -363,10 +370,5 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
     </script>
     """)
 
-
-app = FastAPI()
-app = gr.mount_gradio_app(app, demo, path="/")
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+print("✅ All manuals loaded. Launching app now...")
+demo.launch(server_name="0.0.0.0", server_port=8000)

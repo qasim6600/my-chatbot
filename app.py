@@ -107,7 +107,7 @@ def chunk_tables(tables):
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # --- Groq Client Init ---
-client = Groq(api_key="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")
+client = Groq(api_key="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")
 
 # --- Manual Preloading ---
 manuals = {

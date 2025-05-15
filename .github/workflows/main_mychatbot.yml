@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image with Cache
 
 on:
   push:
@@ -9,9 +9,21 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout main branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important: fetch full history so you can fetch other branches
+
+      - name: Fetch cache branch
+        run: |
+          git fetch origin cache
+          git checkout cache -- ElectroLux_washing_Machine.pkl Mitsubishi_Industrial_AC.pkl whirl-pool_Microwave.pkl
+          # Or if you have a cache folder: git checkout cache -- cache/
+
+      - name: Verify cache files
+        run: ls -l
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin

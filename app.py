@@ -8,8 +8,35 @@ import gradio as gr
 from groq import Groq
 import time
 import os
+import pickle
 
+def cache_manual_data(manual_name, normal_text, figure_text, tables, model, cache_dir="cache"):
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = os.path.join(cache_dir, f"{manual_name.replace(' ', '_')}.pkl")
 
+    if os.path.exists(cache_path):
+        print(f"Loading cached data for {manual_name}...")
+        with open(cache_path, "rb") as f:
+            return pickle.load(f)
+
+    print(f"Processing and caching data for {manual_name}...")
+    combined_text = normal_text + "\n" + figure_text
+    text_chunks = chunk_text(combined_text)
+    table_chunks = chunk_tables(tables)
+    text_embeddings = model.encode(text_chunks)
+    table_embeddings = model.encode(table_chunks)
+
+    data = {
+        "text_chunks": text_chunks,
+        "table_chunks": table_chunks,
+        "text_embeddings": text_embeddings,
+        "table_embeddings": table_embeddings
+    }
+
+    with open(cache_path, "wb") as f:
+        pickle.dump(data, f)
+
+    return data
 
 # --- Cleaning Function ---
 def clean_text(text):
@@ -114,8 +141,8 @@ client = Groq(api_key="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"
 # --- Manual Preloading ---
 manuals = {
     "ElectroLux washing Machine": "elctrolux.pdf",
- #   "Mitsubishi Industrial AC": "Mitsubishi Industrial AC.pdf",
- #   "whirl-pool Microwave": "whirl-pool Microwave.pdf",
+    "Mitsubishi Industrial AC": "Mitsubishi Industrial AC.pdf",
+    "whirl-pool Microwave": "whirl-pool Microwave.pdf",
 }
 
 manual_data = {}
@@ -123,23 +150,8 @@ manual_data = {}
 for product_name, pdf_file in manuals.items():
     try:
         normal_text, figure_text, tables = extract_manual_content(pdf_file)
-        combined_text = normal_text + "\n" + figure_text
-
-        text_chunks = chunk_text(combined_text)
-        table_chunks = chunk_tables(tables)
-
-        text_embeddings = model.encode(text_chunks)
-        table_embeddings = model.encode(table_chunks)
-
-        manual_data[product_name] = {
-            "text_chunks": text_chunks,
-            "table_chunks": table_chunks,
-            "text_embeddings": text_embeddings,
-            "table_embeddings": table_embeddings
-        }
-
-        print(f"✅ Loaded {product_name} | Text chunks: {len(text_chunks)} | Table chunks: {len(table_chunks)}")
-
+        manual_data[product_name] = cache_manual_data(product_name, normal_text, figure_text, tables, model)
+        print(f"✅ Loaded {product_name} | Text chunks: {len(manual_data[product_name]['text_chunks'])} | Table chunks: {len(manual_data[product_name]['table_chunks'])}")
     except Exception as e:
         print(f"⚠️ Failed loading {product_name}: {e}")
 
@@ -241,7 +253,7 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
         
         margin: 0;
         padding: 0;
-        overflow: auto;
+        overflow: hidden;
         background-image: url('https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&w=1350&q=80');
         background-size: cover;
         background-repeat: no-repeat;
@@ -370,5 +382,5 @@ with gr.Blocks(title="Product Manual Assistant", elem_id="main-container", css="
     </script>
     """)
 
-print("✅ All manuals loaded. Launching app now...")
-demo.launch(server_name="0.0.0.0", server_port=8000)
+
+    demo.launch(server_name="0.0.0.0", server_port=8000)

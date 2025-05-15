@@ -1,28 +1,17 @@
+# Use a Python base image
 FROM python:3.10-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# Set working directory
 WORKDIR /app
 
-# Copy your cache files
-COPY *.pkl /app/cache/
+# Copy all files from current dir into /app in container
+COPY . /app
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    poppler-utils \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-
+# Expose port (if app listens on 8000)
 EXPOSE 8000
 
+# Default command to run your app
 CMD ["python", "app.py"]

@@ -1,4 +1,4 @@
-name: Build and Deploy Docker App to Azure
+name: Build and Push Docker Image with Cache
 
 on:
   push:
@@ -11,8 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout main branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important: fetch full history so you can fetch other branches
+
+      - name: Fetch cache branch
+        run: |
+          git fetch origin cache
+          git checkout cache -- ElectroLux_washing_Machine.pkl Mitsubishi_Industrial_AC.pkl whirl-pool_Microwave.pkl
+          # Or if you have a cache folder: git checkout cache -- cache/
+
+      - name: Verify cache files
+        run: ls -l
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -22,15 +33,3 @@ jobs:
 
       - name: Push Docker image
         run: docker push qasim6600/my-chatbot1:latest
-
-  deploy-to-azure:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy container to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'my-chatbot1'  # Make sure this matches the name in Azure
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: 'qasim6600/my-chatbot1:latest'

@@ -1,9 +1,34 @@
-FROM python:3.12
+
+FROM python:3.10-slim
+
+# Set working directory
 WORKDIR /app
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    poppler-utils \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements.txt first to leverage Docker cache
+COPY requirements.txt .
+# Set environment variable for Groq (or handle with a secure method)
+ENV api_key=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
 ENV GRADIO_SERVER_PORT=80
 ENV GRADIO_SERVER_NAME=0.0.0.0
-EXPOSE 80
+# Install Python dependencies
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the app code
 COPY . .
-CMD ["python3", "app.py"]
+
+# Expose the port FastAPI runs on
+EXPOSE 8000
+
+# Run the app
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
